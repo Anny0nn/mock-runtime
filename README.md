@@ -35,10 +35,10 @@
 ## Intro
 
 - 🤏 This template is a minimal (in terms of complexity and the number of components)
-template for building a blockchain node.
+  template for building a blockchain node.
 
 - 🔧 Its runtime is configured with a single custom pallet as a starting point, and a handful of ready-made pallets
-such as a [Balances pallet](https://paritytech.github.io/polkadot-sdk/master/pallet_balances/index.html).
+  such as a [Balances pallet](https://paritytech.github.io/polkadot-sdk/master/pallet_balances/index.html).
 
 - 👤 The template has no consensus configured - it is best for experimenting with a single node network.
 
@@ -49,17 +49,17 @@ A Polkadot SDK based project such as this one consists of:
 - 🧮 the [Runtime](./runtime/README.md) - the core logic of the blockchain.
 - 🎨 the [Pallets](./pallets/README.md) - from which the runtime is constructed.
 - 💿 a [Node](./node/README.md) - the binary application (which is not part of the cargo default-members list and is not
-compiled unless building the entire workspace).
+  compiled unless building the entire workspace).
 
 ## Getting Started
 
 - 🦀 The template is using the Rust language.
 
 - 👉 Check the
-[Rust installation instructions](https://www.rust-lang.org/tools/install) for your system.
+  [Rust installation instructions](https://www.rust-lang.org/tools/install) for your system.
 
 - 🛠️ Depending on your operating system and Rust version, there might be additional
-packages required to compile this template - please take note of the Rust compiler output.
+  packages required to compile this template - please take note of the Rust compiler output.
 
 Fetch minimal template code:
 
@@ -81,10 +81,10 @@ be used to run the minimal template's runtime. `polkadot-omni-node` binary crate
 
 Please see installation section on [crates.io/omni-node](https://crates.io/crates/polkadot-omni-node).
 
-#### Build `minimal-template-runtime`
+#### Build `mock-runtime`
 
 ```sh
-cargo build -p minimal-template-runtime --release
+cargo build -p mock-runtime --release
 ```
 
 #### Install `staging-chain-spec-builder`
@@ -95,7 +95,7 @@ Please see the installation section at [`crates.io/staging-chain-spec-builder`](
 
 ```sh
 chain-spec-builder create --relay-chain "dev" --para-id 1000 --runtime \
-    target/release/wbuild/minimal-template-runtime/minimal_template_runtime.wasm named-preset development
+    target/release/wbuild/mock-runtime/mock_runtime.wasm named-preset development
 ```
 
 **Note**: the `relay-chain` and `para-id` flags are extra bits of information required to
@@ -129,8 +129,8 @@ docker build . -t polkadot-sdk-minimal-template
 
 #### Start the `minimal-template-node`
 
-The `minimal-template-node` has dependency on the `minimal-template-runtime`. It will use
-the `minimal_template_runtime::WASM_BINARY` constant (which holds the WASM blob as a byte
+The `minimal-template-node` has dependency on the `mock-runtime`. It will use
+the `mock_runtime::WASM_BINARY` constant (which holds the WASM blob as a byte
 array) for chain spec building, while starting. This is in contrast to Omni Node which doesn't
 depend on a specific runtime, but asks for the chain spec at startup.
 
@@ -180,14 +180,14 @@ zombienet --provider native spawn zombienet-multi-node.toml
 ### Connect with the Polkadot-JS Apps Front-End
 
 - 🌐 You can interact with your local node using the
-hosted version of the [Polkadot/Substrate
-Portal](https://polkadot.js.org/apps/#/explorer?rpc=ws://localhost:9944).
+  hosted version of the [Polkadot/Substrate
+  Portal](https://polkadot.js.org/apps/#/explorer?rpc=ws://localhost:9944).
 
 - 🪐 A hosted version is also
-available on [IPFS](https://dotapps.io/).
+  available on [IPFS](https://dotapps.io/).
 
 - 🧑‍🔧 You can also find the source code and instructions for hosting your own instance in the
-[`polkadot-js/apps`](https://github.com/polkadot-js/apps) repository.
+  [`polkadot-js/apps`](https://github.com/polkadot-js/apps) repository.
 
 ### Takeaways
 
@@ -205,15 +205,15 @@ Previously minimal template's development chains:
 - ➡️ Any pull requests should be directed to this [source](https://github.com/paritytech/polkadot-sdk/tree/master/templates/minimal).
 
 - 😇 Please refer to the monorepo's
-[contribution guidelines](https://github.com/paritytech/polkadot-sdk/blob/master/docs/contributor/CONTRIBUTING.md) and
-[Code of Conduct](https://github.com/paritytech/polkadot-sdk/blob/master/docs/contributor/CODE_OF_CONDUCT.md).
+  [contribution guidelines](https://github.com/paritytech/polkadot-sdk/blob/master/docs/contributor/CONTRIBUTING.md) and
+  [Code of Conduct](https://github.com/paritytech/polkadot-sdk/blob/master/docs/contributor/CODE_OF_CONDUCT.md).
 
 ## Getting Help
 
 - 🧑‍🏫 To learn about Polkadot in general, [Polkadot.network](https://polkadot.network/) website is a good starting point.
 
 - 🧑‍🔧 For technical introduction, [here](https://github.com/paritytech/polkadot-sdk#-documentation) are
-the Polkadot SDK documentation resources.
+  the Polkadot SDK documentation resources.
 
 - 👥 Additionally, there are [GitHub issues](https://github.com/paritytech/polkadot-sdk/issues) and
-[Substrate StackExchange](https://substrate.stackexchange.com/).
+  [Substrate StackExchange](https://substrate.stackexchange.com/).
