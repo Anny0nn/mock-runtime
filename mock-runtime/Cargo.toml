@@ -11,15 +11,11 @@ publish = false
 
 [dependencies]
 log = { workspace = true }
-# getrandom = { workspace = true, features = ["js"] }
 codec = { workspace = true }
 scale-info = { workspace = true }
 polkadot-sdk = { workspace = true, features = ["pallet-balances", "pallet-sudo", "pallet-timestamp", "pallet-transaction-payment", "pallet-transaction-payment-rpc-runtime-api", "runtime", "sp-api", "sp-runtime", "sp-core", "sp-api", "sp-genesis-builder", "sp-inherents", "sp-block-builder", "sp-std", "sp-offchain", "sp-session", "frame-system-rpc-runtime-api", "frame-system", "frame-support"] }
 serde_json = { workspace = true, default-features = false, features = ["alloc"] }
 serde = { workspace = true, features = ["derive"] }
-# sp-runtime = { workspace = true }
-# sp-core = { workspace = true }
-# sp-io = { workspace = true }
 
 [build-dependencies]
 polkadot-sdk = { optional = true, workspace = true, features = ["substrate-wasm-builder"] }
@@ -33,8 +29,4 @@ std = [
 	"serde_json/std",
 	"log/std",
 	"serde/std",
-	# "getrandom/js",
-	# "sp-runtime/std",
-	# "sp-core/std",
-	# "sp-io/std",
 ]

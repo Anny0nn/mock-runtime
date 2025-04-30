@@ -10,19 +10,17 @@ use alloc::{vec, vec::Vec};
 use codec::{Decode, Encode};
 use log::info;
 const LOG_TARGET: &str = "mock-runtime";
-#[cfg(any(feature = "std", test))]
-use polkadot_sdk::sp_runtime::{BuildStorage, Storage};
 use polkadot_sdk::{
     self, frame_system_rpc_runtime_api,
-    polkadot_sdk_frame::prelude::ValidTransaction,
+    polkadot_sdk_frame::prelude::{Hash as HashT, ValidTransaction},
     sp_api::{self, impl_runtime_apis},
     sp_block_builder,
-    sp_core::{self, twox_128, OpaqueMetadata},
+    sp_core::{self, OpaqueMetadata},
     sp_genesis_builder::{self, PresetId},
-    sp_inherents, sp_io, sp_keyring, sp_offchain,
+    sp_inherents, sp_io, sp_offchain,
     sp_runtime::{
         self,
-        generic::{self, UncheckedExtrinsic},
+        generic::{self},
         traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, Verify},
         transaction_validity::TransactionValidity,
         ApplyExtrinsicResult, ExtrinsicInclusionMode, MultiAddress, MultiSignature,
@@ -34,10 +32,8 @@ use polkadot_sdk::{
     sp_version::{self, Cow, RuntimeVersion},
 };
 
-#[cfg(feature = "std")]
-use serde::{Deserialize, Serialize};
-
 const HEADER_KEY: &[u8] = b":header";
+pub const EXTRINSICS_KEY: &[u8] = b"extrinsics";
 
 #[derive(Debug, Encode, Decode, PartialEq, Eq, Clone)]
 pub struct Runtime;
@@ -100,7 +96,6 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 /// to even the dao data structures.
 pub mod opaque {
     use super::*;
-    use polkadot_sdk::sp_runtime::impl_opaque_keys;
     use sp_runtime::{generic, traits::BlakeTwo256};
 
     pub use sp_runtime::OpaqueExtrinsic as UncheckedExtrinsic;
@@ -112,26 +107,9 @@ pub mod opaque {
     pub type BlockId = generic::BlockId<Block>;
 }
 
-/// The type that provides the genesis storage values for a new chain
-#[cfg_attr(feature = "std", derive(Serialize, Deserialize, Default))]
-pub struct GenesisConfig;
-
-#[cfg(feature = "std")]
-impl BuildStorage for GenesisConfig {
-    fn assimilate_storage(&self, storage: &mut Storage) -> Result<(), String> {
-        // we have nothing to put into storage in genesis, except this:
-        storage
-            .top
-            .insert(well_known_keys::CODE.into(), WASM_BINARY.unwrap().to_vec());
-
-        Ok(())
-    }
-}
-
 /// Provides getters for genesis configuration presets.
 pub mod genesis_config_presets {
     use super::*;
-    use crate::sp_keyring::Sr25519Keyring;
 
     use alloc::{vec, vec::Vec};
     use serde_json::Value;
@@ -167,6 +145,26 @@ impl Runtime {
         T::decode(&mut &*data).ok()
     }
 
+    fn update_header(initial_header: Header) -> Header {
+        let state_root = {
+            let raw = &sp_io::storage::root(Default::default())[..];
+            sp_core::H256::decode(&mut &raw[..]).unwrap()
+        };
+
+        let extrinsics = sp_io::storage::get(EXTRINSICS_KEY)
+            .and_then(|bytes| <Vec<Vec<u8>> as Decode>::decode(&mut &*bytes).ok())
+            .unwrap_or_default();
+
+        let expected_extrinsics_root =
+            BlakeTwo256::ordered_trie_root(extrinsics, Default::default());
+
+        let mut header = initial_header;
+        header.extrinsics_root = expected_extrinsics_root;
+        header.state_root = state_root;
+
+        header
+    }
+
     fn do_validate_transaction(
         _tx: <Block as BlockT>::Extrinsic,
         _block_hash: <Block as BlockT>::Hash,
@@ -188,12 +186,17 @@ impl Runtime {
     pub fn do_initialize_block(header: &<Block as BlockT>::Header) -> ExtrinsicInclusionMode {
         info!(target: LOG_TARGET, "Initializing block number: {:?}", header.number);
         sp_io::storage::set(HEADER_KEY, &header.encode());
+        sp_io::storage::clear(EXTRINSICS_KEY);
         ExtrinsicInclusionMode::AllExtrinsics
     }
 
     pub fn do_finalize_block() -> <Block as BlockT>::Header {
-        let header = Self::get_state::<<Block as BlockT>::Header>(HEADER_KEY).unwrap();
-        header
+        let header = Self::get_state::<<Block as BlockT>::Header>(HEADER_KEY)
+            .expect("Header should be initialized");
+
+        sp_io::storage::clear(HEADER_KEY);
+
+        Self::update_header(header)
     }
 }
 
@@ -249,13 +252,13 @@ impl sp_block_builder::BlockBuilder<Block> for Runtime {
 
 impl sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block> for Runtime {
     fn validate_transaction(
-        source: sp_runtime::transaction_validity::TransactionSource,
+        _source: sp_runtime::transaction_validity::TransactionSource,
         tx: <Block as BlockT>::Extrinsic,
         block_hash: <Block as BlockT>::Hash,
     ) -> TransactionValidity {
         log::debug!(target: LOG_TARGET,"Entering validate_transaction. tx: {:?}", tx);
         // Self::do_validate_transaction(source, tx, block_hash)
-        Ok(ValidTransaction::default())
+        Self::do_validate_transaction(tx, block_hash)
     }
 }
 
@@ -294,9 +297,6 @@ impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {
         vec![PresetId::from(sp_genesis_builder::DEV_RUNTIME_PRESET), PresetId::from(sp_genesis_builder::LOCAL_TESTNET_RUNTIME_PRESET)]
 
     }
-    // fn build_config(_config: Vec<u8>) -> sp_genesis_builder::Result {
-    //     Runtime::do_build_config()
-    // }
 }
 
 impl sp_api::Metadata<Block> for Runtime {

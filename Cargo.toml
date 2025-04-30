@@ -10,6 +10,7 @@ default-members = ["mock-runtime"]
 members = [
     "node",
     "mock-runtime",
+    "testing"
 ]
 resolver = "2"
 
@@ -27,3 +28,5 @@ codec = { version = "3.7.4", default-features = false, package = "parity-scale-c
 scale-info = { version = "2.11.6", default-features = false }
 getrandom = { version = "*", default-features = false, features = ["js"] }
 serde = { version = "1.0.219", default-features = false, features = ["derive"] }
+subxt = { version = "0.41.0" }
+tokio = { version = "1.41.1" }

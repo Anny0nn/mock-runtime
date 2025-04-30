@@ -1,0 +1,30 @@
+[package]
+name = "testing"
+description = "RPC tests for the mock-runtime"
+version = "0.1.0"
+license = "Unlicense"
+authors.workspace = true
+homepage.workspace = true
+repository.workspace = true
+edition.workspace = true
+publish = false
+
+[dependencies]
+log = { workspace = true }
+codec = { workspace = true }
+scale-info = { workspace = true }
+serde_json = { workspace = true, default-features = false, features = ["alloc"] }
+serde = { workspace = true, features = ["derive"] }
+subxt = { workspace = true }
+tokio = { workspace = true, features = ["rt", "rt-multi-thread"] }
+
+
+[features]
+default = ["std"]
+std = [
+	"codec/std",
+	"scale-info/std",
+	"serde_json/std",
+	"log/std",
+	"serde/std",
+]
