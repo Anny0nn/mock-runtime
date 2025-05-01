@@ -1,14 +1,20 @@
 use serde_json::Value;
-use subxt::{backend::rpc::RpcClient, ext::subxt_rpcs::client::RpcParams, utils::H256};
-use tokio::main;
-
-const CODE: &str = "0x60806040526000805560126001556000805160206000f3";
+use subxt::{
+    backend::{legacy::LegacyRpcMethods, rpc::RpcClient},
+    ext::subxt_rpcs::client::RpcParams,
+    utils::H256,
+    SubstrateConfig,
+};
 
 pub async fn get_client() -> RpcClient {
     let client = RpcClient::from_url("ws://localhost:9944")
         .await
         .expect("Node should be running");
     client
+}
+
+pub async fn get_legacy_rpc_methods(client: &RpcClient) -> LegacyRpcMethods<SubstrateConfig> {
+    LegacyRpcMethods::new(client.clone())
 }
 
 pub async fn get_block_hash(client: &RpcClient) -> H256 {

@@ -26,9 +26,7 @@ use polkadot_sdk::{
         ApplyExtrinsicResult, ExtrinsicInclusionMode, MultiAddress, MultiSignature,
         OpaqueExtrinsic,
     },
-    sp_session, sp_std,
-    sp_storage::well_known_keys,
-    sp_transaction_pool,
+    sp_session, sp_std, sp_transaction_pool,
     sp_version::{self, Cow, RuntimeVersion},
 };
 
@@ -145,6 +143,7 @@ impl Runtime {
         T::decode(&mut &*data).ok()
     }
 
+    /// Update the header with the state root and extrinsics root
     fn update_header(initial_header: Header) -> Header {
         let state_root = {
             let raw = &sp_io::storage::root(Default::default())[..];
@@ -165,6 +164,8 @@ impl Runtime {
         header
     }
 
+    /// In the mock runtime, we don't need to validate transactions.
+    /// TODO: Implement a Call/transaction enum and accept transaction submittion via rpc.
     fn do_validate_transaction(
         _tx: <Block as BlockT>::Extrinsic,
         _block_hash: <Block as BlockT>::Hash,
@@ -172,10 +173,12 @@ impl Runtime {
         Ok(ValidTransaction::default())
     }
 
+    /// Not dealing with dispatching extrinsics in the mock runtime.
     fn do_dispatch_extrinsic(_extrinsic: <Block as BlockT>::Extrinsic) {
         info!(target: LOG_TARGET, "Dispatching extrinsic: {:?}", _extrinsic);
     }
 
+    /// Simulate the execution of a block by dispatching each extrinsic and logging it.
     pub fn do_execute_block(block: Block) {
         info!(target: LOG_TARGET, "Executing block number: {:?}", block.header.number);
         for extrinsic in block.extrinsics {
@@ -190,6 +193,8 @@ impl Runtime {
         ExtrinsicInclusionMode::AllExtrinsics
     }
 
+    /// Finalize the block by clearing the storage keys and
+    /// updating the header with the state root and extrinsics root.
     pub fn do_finalize_block() -> <Block as BlockT>::Header {
         let header = Self::get_state::<<Block as BlockT>::Header>(HEADER_KEY)
             .expect("Header should be initialized");
@@ -262,6 +267,7 @@ impl sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block> for Runtime
     }
 }
 
+/// Node requires this to be implemented. TODO! try to remove this.
 impl frame_system_rpc_runtime_api::AccountNonceApi<Block, interface::AccountId, interface::Nonce> for Runtime {
     fn account_nonce(_account: interface::AccountId) -> interface::Nonce {
         Default::default()
@@ -275,8 +281,9 @@ impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {
         let _ = serde_json::to_string(&genesis)
             .expect("genesis state should be convertible to json")
             .into_bytes();
-        #[cfg(feature = "std")]
-        sp_io::storage::set(well_known_keys::CODE, &WASM_BINARY.unwrap().to_vec());
+        // Just for testing purposes.
+        // #[cfg(feature = "std")]
+        // sp_io::storage::set(well_known_keys::CODE, &WASM_BINARY.unwrap().to_vec());
         Ok(())
 
     }
@@ -294,6 +301,7 @@ impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {
     }
 
     fn preset_names() -> Vec<PresetId> {
+        // I had some issues when starting the node with some different launch options.
         vec![PresetId::from(sp_genesis_builder::DEV_RUNTIME_PRESET), PresetId::from(sp_genesis_builder::LOCAL_TESTNET_RUNTIME_PRESET)]
 
     }
@@ -301,6 +309,8 @@ impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {
 
 impl sp_api::Metadata<Block> for Runtime {
     fn metadata() -> OpaqueMetadata {
+        // Blank metadata. Maybe look into a way of creating enough metadata to
+        // make polkadot-js work.
         OpaqueMetadata::new(Default::default())
     }
 
